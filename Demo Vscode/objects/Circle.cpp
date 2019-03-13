@@ -1,20 +1,26 @@
 #include "Circle.h"
 
-Circle::Circle(int x, int y, int radius, SDL_Color col) {
-	m_x = x;
-	m_y = y;
+// Circle Constructor function implementation
+Circle::Circle(float x, float y, bool isStatic, int radius, SDL_Color col) {
+	m_position.first = x;
+	m_position.second = y;
+	m_static = isStatic;
 	m_radius = radius;
 	m_color = col;
+	m_velocity = { 0.0f, 0.0f };
 }
 
+// Deconstructor
 Circle::~Circle() {
 
 }
 
+// Update Implementation
 void Circle::update() {
 
 }
 
+// Render a circle
 void Circle::render(SDL_Renderer* rend) {
     
     SDL_SetRenderDrawColor(rend, m_color.r, m_color.g, m_color.b, m_color.a);
@@ -27,14 +33,25 @@ void Circle::render(SDL_Renderer* rend) {
 		{
 			for (int t = 0; t < 360; t++)
 			{
-				point_x = m_x + (m_radius * SDL_cos(t));
-				point_y = m_y + (m_radius * SDL_sin(t));
+				point_x = m_position.first + (m_radius * SDL_cos(t));
+				point_y = 	m_position.second + (m_radius * SDL_sin(t));
 				SDL_RenderDrawPoint(rend, point_x, point_y);
 			}
 			temp--;
 		}
 }
 
-void Circle::setPosX(){
-	m_x += 10;
+// Set X position
+void Circle::setPosX(float x){
+	m_position.first = x;
+}
+
+// Set Y position
+void Circle::setPosY(float y){
+	m_position.second = y;
+}
+
+// Set X position
+void Circle::setPos(std::pair<float, float> pos){
+	m_position = pos;
 }

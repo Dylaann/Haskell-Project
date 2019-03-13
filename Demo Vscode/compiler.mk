@@ -18,25 +18,27 @@ LIBRARY_PATHS = -L"C:\SDL2-2.0.3\x86_64-w64-mingw32\lib"\
 -L"C:\Program Files\Haskell Platform\8.4.3\lib\ghc-prim-0.5.2.0"\
 -L"C:\Program Files\Haskell Platform\8.4.3\lib\integer-gmp-1.0.2.0"\
 
+LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lstdc++ -optl-mwindows -optl-Wl,-allow-multiple-definition
 
-LINKER_FLAGS = -lSDL2main -lSDL2 -lstdc++
+COMPILER_FLAGS = -w
 
-COMPILER_FLAGS = -w -Wl, -subsystem,windows
-
-output: move.o circle.o game.o main.o
-	ghc main.o game.o circle.o Haskell/move.o $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS)
+output: move.o rectangleObj.o circle.o game.o main.o
+	ghc -g -no-hs-main main.o game.o rectangleObj.o circle.o Haskell/move.o $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -o HaskellDemo
 
 main.o: main.cpp 
-	g++ $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -c main.cpp
+	g++ $(INCLUDE_PATHS) -c main.cpp
 
 game.o: Game.cpp Game.h
-	g++ $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -c game.cpp 
+	g++ $(INCLUDE_PATHS) -c game.cpp 
 
 circle.o: objects/Circle.cpp objects/Circle.h
-	g++ $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -c objects/Circle.cpp
+	g++ $(INCLUDE_PATHS) -c objects/Circle.cpp
+
+rectangleObj.o: objects/RectangleObj.cpp objects/RectangleObj.h
+	g++ $(INCLUDE_PATHS) -c objects/RectangleObj.cpp
 
 move.o: Haskell/Move.hs;
-	ghc -no-hs-main $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -fforce-recomp Haskell/Move.hs -c
+	ghc $(INCLUDE_PATHS) -fforce-recomp Haskell/Move.hs -c
 
 .PHONY: clean
 clean: ; del *.o *.hi *_stub.h *.exe
