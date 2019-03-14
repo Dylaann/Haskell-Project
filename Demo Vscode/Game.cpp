@@ -64,12 +64,16 @@ void Game::processEvents() {
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 		case SDL_QUIT:
+			FreeConsole();
 			m_exitGame = true;
 			break;
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				m_exitGame = true;
-			if (event.key.keysym.sym == SDLK_RIGHT)
+			if (event.key.keysym.sym == SDLK_RIGHT) {
+				Circle* temp1 = new Circle(100.0f, 100.0f, true, 30, red);
+				objs.push_back(temp1);
+			}
 			break;
 		default:
 			break;
@@ -80,14 +84,46 @@ void Game::processEvents() {
 //Update Loop
 void Game::update()
 {
-	objs[0]->setPosY(moveGravity(objs[0]->getPosY()));
+	for(int i = 0; i < (int)objs.size(); i++) {
+		objs[i]->setVel(std::make_pair<float, float>(objs[i]->getVel().first, moveGravity(objs[i]->getVel().second)));
+		objs[i]->setPosX(applyForce(objs[i]->getPosX(), objs[i]->getVel().first));
+		objs[i]->setPosY(applyForce(objs[i]->getPosY(), objs[i]->getVel().second));
 
-	if(circleRectCollision(objs[0]->getPosX(), objs[0]->getPosY(), objs[0]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)) {
-		objs[0]->setPosX(objs[0]->getPosX() - pushBackPosX(objs[0]->getPosX(), objs[0]->getPosY(), objs[0]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second));
-		objs[0]->setPosY(objs[0]->getPosY() - pushBackPosY(objs[0]->getPosX(), objs[0]->getPosY(), objs[0]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second));
-	}
-	else{
-		std::cout << "No Collision" << std::endl;
+		if (checkLeftBound(objs[i]->getPosX(), objs[i]->getRadius())) {
+			objs[i]->setPosX(leftBoundRes(objs[i]->getRadius()));
+		}
+		if (checkRightBound(objs[i]->getPosX(), objs[i]->getRadius())) {
+			objs[i]->setPosX(rightBoundRes(objs[i]->getRadius()));
+		}
+
+		if(circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)) {
+			objs[i]->setPosX(applyForce(objs[i]->getPosX(), -pushBackPosX(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)));
+			objs[i]->setPosY(applyForce(objs[0]->getPosY(), -pushBackPosY(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)));
+			objs[i]->setVel(std::make_pair<float, float>(circleRectResX(objs[i]->getVel().first), circleRectResY(objs[i]->getVel().second)));
+		}
+
+		for (int j = 0; j < (int)objs.size(); j++) {
+			if (j != i && j < i) {
+				if(circleCircleCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), objs[j]->getPosX(), objs[j]->getPosY(), objs[j]->getRadius())) {
+					std::cout << "Collision Laaaad" << std::endl;
+					
+					//objs[i]->setPos(std::make_pair<float, float>(applyForce(objs[i]->getPos().first, newVelX1(objs[i]->getVel().first, objs[j]->getVel().first)), applyForce(objs[i]->getPos().second, newVelY1(objs[i]->getVel().second, objs[j]->getVel().second))));
+					//objs[j]->setPos(std::make_pair<float, float>(applyForce(objs[j]->getPos().first, newVelX2(objs[i]->getVel().first, objs[j]->getVel().first)), applyForce(objs[j]->getPos().second, newVelY2(objs[i]->getVel().second, objs[j]->getVel().second))));
+					
+					objs[i]->setVel(std::make_pair<float, float>(newVelX1(objs[i]->getPos().first, objs[i]->getPos().second, objs[i]->getVel().first, objs[i]->getVel().second,
+					objs[j]->getPos().first, objs[j]->getPos().second, objs[j]->getVel().first, objs[j]->getVel().second),
+					newVelY1(objs[i]->getPos().first, objs[i]->getPos().second, objs[i]->getVel().first, objs[i]->getVel().second,
+					objs[j]->getPos().first, objs[j]->getPos().second, objs[j]->getVel().first, objs[j]->getVel().second)));
+
+					objs[j]->setVel(std::make_pair<float, float>(newVelX2(objs[i]->getPos().first, objs[i]->getPos().second, objs[i]->getVel().first, objs[i]->getVel().second,
+					objs[j]->getPos().first, objs[j]->getPos().second, objs[j]->getVel().first, objs[j]->getVel().second),
+					newVelY2(objs[i]->getPos().first, objs[i]->getPos().second, objs[i]->getVel().first, objs[i]->getVel().second,
+					objs[j]->getPos().first, objs[j]->getPos().second, objs[j]->getVel().first, objs[j]->getVel().second)));
+
+					std::cout << objs[i]->getVel().second << std::endl;
+				}
+			}
+		}
 	}
 }
 

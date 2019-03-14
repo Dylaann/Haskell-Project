@@ -21,11 +21,13 @@ public:
     //Gets & Sets.
     void setPosX(float x);
     void setPosY(float y);
+    void setVel(std::pair<float, float> vel);
     void setPos(std::pair<float, float> pos);
     float getPosX(){ return m_position.first; };
     float getPosY(){ return m_position.second; };
     float getRadius(){ return m_radius; };
     std::pair<float, float> getPos(){ return m_position; };
+    std::pair<float, float> getVel(){ return m_velocity; };
 
 private:
     //Private Member Variables.
@@ -34,5 +36,6 @@ private:
     std::pair<float, float> m_velocity;
     int m_radius;
     bool m_static;
+    int m_maxVel = 10;
 };
 #endif // !Circle   

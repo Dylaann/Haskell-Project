@@ -51,6 +51,24 @@ void Circle::setPosY(float y){
 	m_position.second = y;
 }
 
+// Set X velocity
+void Circle::setVel(std::pair<float, float> vel){
+	if(vel.first < m_maxVel) {
+		m_velocity.first = vel.first;
+	}
+	else {
+		m_velocity.first = m_maxVel;
+	}
+
+	if(vel.second < m_maxVel) {
+	m_velocity.second = vel.second;
+	}
+	else {
+			m_velocity.second = m_maxVel;
+	}
+
+}
+
 // Set X position
 void Circle::setPos(std::pair<float, float> pos){
 	m_position = pos;
