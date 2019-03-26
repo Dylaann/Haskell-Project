@@ -10,7 +10,7 @@
 class Circle {
 public:
     //Constructor / Destructor.
-	Circle(float x, float y, bool isStatic, int radius, SDL_Color col);
+	Circle(int id, float x, float y, bool isStatic, int radius, SDL_Color col);
 	~Circle();
 
     //Update & Render functions.
@@ -26,8 +26,13 @@ public:
     float getPosX(){ return m_position.first; };
     float getPosY(){ return m_position.second; };
     float getRadius(){ return m_radius; };
+    float getMass(){ return m_mass; };
     std::pair<float, float> getPos(){ return m_position; };
     std::pair<float, float> getVel(){ return m_velocity; };
+    bool getStatic(){ return m_static; };
+    void setStatic(bool stat) { m_static = stat; }
+
+    int m_id = 0;
 
 private:
     //Private Member Variables.
@@ -36,6 +41,7 @@ private:
     std::pair<float, float> m_velocity;
     int m_radius;
     bool m_static;
-    int m_maxVel = 10;
+    float m_maxVel = 20;
+    float m_mass = 10;
 };
 #endif // !Circle   

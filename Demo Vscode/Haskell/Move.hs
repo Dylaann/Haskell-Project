@@ -10,14 +10,23 @@ foreign export ccall circleRectResY :: Float -> Float
 foreign export ccall circleRectResX :: Float -> Float
 foreign export ccall checkLeftBound :: Float -> Float -> Bool
 foreign export ccall checkRightBound :: Float -> Float -> Bool
+foreign export ccall checkTopBound :: Float -> Float -> Bool
+foreign export ccall checkBottomBound :: Float -> Float -> Bool
 foreign export ccall leftBoundRes :: Float -> Float
 foreign export ccall rightBoundRes :: Float -> Float
+foreign export ccall topBoundRes :: Float -> Float
+foreign export ccall bottomBoundRes :: Float -> Float
 foreign export ccall circleCircleResX :: Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall circleCircleResY :: Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall newVelX1 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall newVelY1 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall newVelX2 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall newVelY2 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+foreign export ccall lastHopeX1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+foreign export ccall lastHopeY1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+foreign export ccall lastHopeX2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+foreign export ccall lastHopeY2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+foreign export ccall groundRestitution :: Float -> Float
 
 -- | act as gravity and move the y coordinate
 moveGravity :: Float -> Float
@@ -37,6 +46,12 @@ checkLeftBound x1 r1 = x1 + r1 < 0
 -- | check if object is off screen to right
 checkRightBound :: Float -> Float -> Bool
 checkRightBound x1 r1 = x1 - r1 > 1280
+-- | check if object is off screen top
+checkTopBound :: Float -> Float -> Bool
+checkTopBound x1 r1 = x1 + r1 < 0
+-- | check if object is off screen bottom
+checkBottomBound :: Float -> Float -> Bool
+checkBottomBound x1 r1 = x1 - r1 > 720
 
 -- | place object on left side of screen
 leftBoundRes :: Float -> Float
@@ -44,8 +59,12 @@ leftBoundRes r1 = 1280 + r1
 -- | place object on right side of screen
 rightBoundRes :: Float -> Float
 rightBoundRes r1 = 0 - r1
-
-
+-- | place object on bottom of screen
+topBoundRes :: Float -> Float
+topBoundRes r1 = 720 + r1
+-- | place object top of screen
+bottomBoundRes :: Float -> Float
+bottomBoundRes r1 = 0 - r1
 
 
 -- | detect if circles collide given position and radius
@@ -60,14 +79,49 @@ circleCircleResX x1 y1 v1 x2 y2 v2 = (v1 - v2) - ((normaliseVec (tangentX y1 y2)
 circleCircleResY :: Float -> Float -> Float -> Float -> Float -> Float -> Float
 circleCircleResY x1 y1 v1 x2 y2 v2 = (v1 - v2) - ((normaliseVec (tangentY x1 x2) (getMag x1 y1)) * (dotProd x1 y1 x2 y2))
 
+lastHopeX1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float-> Float -> Float
+lastHopeX1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((tx (ny x1 y1 x2 y2)) * (dpTan1 x1 y1 vx1 vy1 x2 y2 vx2 vy2)) + ((nx x1 y1 x2 y2) * (mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
+lastHopeY1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+lastHopeY1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((ty (ny x1 y1 x2 y2)) * (dpTan1 x1 y1 vx1 vy1 x2 y2 vx2 vy2)) + ((ny x1 y1 x2 y2) * (mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
+
+lastHopeX2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+lastHopeX2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((tx (ny x1 y1 x2 y2)) * (dpTan2 x1 y1 vx1 vy1 x2 y2 vx2 vy2)) + ((nx x1 y1 x2 y2) * (mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
+lastHopeY2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+lastHopeY2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((ty (ny x1 y1 x2 y2)) * (dpTan2 x1 y1 vx1 vy1 x2 y2 vx2 vy2)) + ((ny x1 y1 x2 y2) * (mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
+
+nx :: Float -> Float -> Float -> Float -> Float
+nx x1 y1 x2 y2 = (x2 - x1) / (getDist x1 y1 x2 y2)
+ny :: Float -> Float -> Float -> Float -> Float
+ny x1 y1 x2 y2 = (y2 - y1) / (getDist x1 y1 x2 y2)
+
+tx :: Float -> Float
+tx ny = -ny
+ty :: Float -> Float
+ty nx = nx
+
+dpTan1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+dpTan1 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = (vx1 * (tx (ny x1 y1 x2 y2))) + (vy1 *  (ty (nx x1 y1 x2 y2)))
+dpTan2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+dpTan2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = (vx2 * (tx (ny x1 y1 x2 y2))) + (vy2 *  (ty (nx x1 y1 x2 y2)))
+
+dpNorm1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+dpNorm1 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = (vx1 * (nx x1 y1 x2 y2)) + (vy1 * (ny x1 y1 x2 y2))
+dpNorm2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+dpNorm2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = (vx2 * (nx x1 y1 x2 y2)) + (vy2 * (ny x1 y1 x2 y2))
+
+mass1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = (dpNorm1  x1 y1 vx1 vy1 x2 y2 vx2 vy2) * (m1 - m2) + 2.0 * m2 * (dpNorm2 x1 y1 vx1 vy1 x2 y2 vx2 vy2) / (m1 + m2)
+mass2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
+mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = (dpNorm2  x1 y1 vx1 vy1 x2 y2 vx2 vy2) * (m2 - m1) + 2.0 * m1 * (dpNorm1 x1 y1 vx1 vy1 x2 y2 vx2 vy2) / (m1 + m2)
+
 
 nxPoint :: Float -> Float -> Float -> Float
-nxPoint x1 x2 d = (x2 -x1) / d
+nxPoint x1 x2 d = (x2 - x1) / d
 nyPoint :: Float -> Float -> Float -> Float
-nyPoint y1 y2 d = (y2 -y1) / d
+nyPoint y1 y2 d = (y2 - y1) / d
 
 pValue :: Float -> Float -> Float -> Float -> Float -> Float -> Float
-pValue vx1 vy1 vx2 vy2 nx ny = 2 * (vx1 * nx + vy1 * ny - vx2 * nx - vy2 * ny)
+pValue vx1 vy1 vx2 vy2 nx1 ny1 = 2 * (((vx1 * nx1) + (vy1 * ny1)) - ((vx2 * nx1) - (vy2 * ny1)))
 
 newVelX1 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 newVelX1 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vx1 - (pValue vx1 vy1 vx2 vy2 (nxPoint x1 x2 (getDist x1 y1 x2 y2)) (nyPoint y1 y2 (getDist x1 y1 x2 y2))) * (nxPoint x1 x2 (getDist x1 y1 x2 y2))
@@ -76,9 +130,7 @@ newVelY1 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vy1 - (pValue vx1 vy1 vx2 vy2 (nxPoint x1
 newVelX2 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 newVelX2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vx2 + (pValue vx1 vy1 vx2 vy2 (nxPoint x1 x2 (getDist x1 y1 x2 y2)) (nyPoint y1 y2 (getDist x1 y1 x2 y2))) * (nxPoint x1 x2 (getDist x1 y1 x2 y2))
 newVelY2 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-newVelY2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vy2 - (pValue vx1 vy1 vx2 vy2 (nxPoint x1 x2 (getDist x1 y1 x2 y2)) (nyPoint y1 y2 (getDist x1 y1 x2 y2))) * (nyPoint y1 y2 (getDist x1 y1 x2 y2))
-
-
+newVelY2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vy2 + (pValue vx1 vy1 vx2 vy2 (nxPoint x1 x2 (getDist x1 y1 x2 y2)) (nyPoint y1 y2 (getDist x1 y1 x2 y2))) * (nyPoint y1 y2 (getDist x1 y1 x2 y2))
 
 
 -- | Get tangent vector
@@ -99,7 +151,7 @@ normaliseVec x mag = x / mag
 getMag :: Float -> Float -> Float
 getMag x y = sqrt((x * x) + (y * y))
 
--- | check if  circle collides with a rectangle
+-- | check if circle collides with a rectangle
 circleRectCollision :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Bool
 circleRectCollision x1 y1 r1 x2 y2 w2 h2 = sqrt((((circleRectCompX x1 x2 w2) - x1) * ((circleRectCompX x1 x2 w2) - x1)) + (((circleRectCompY y1 y2 h2) - y1) * ((circleRectCompY y1 y2 h2) - y1))) < r1
 
@@ -108,7 +160,7 @@ circleRectResY :: Float -> Float
 circleRectResY y = (groundRestitution y) * (-1)
 -- | circle rectangle collison effect on velocity
 circleRectResX :: Float -> Float
-circleRectResX x = (groundRestitution x)
+circleRectResX x = (groundRestitution x) * (-1)
 
 -- | restitution
 groundRestitution :: Float -> Float
@@ -146,7 +198,6 @@ penAngle x1 y1 x2 y2 = atan2 (y2 - y1) (x2 - x1)
 -- | Get penetration distance
 penDist :: Float -> Float -> Float
 penDist r1 d1 = r1 - d1
-
 
 -- | checks if closest wall is left or right and returns wall
 circleRectCompX :: Float -> Float -> Float -> Float

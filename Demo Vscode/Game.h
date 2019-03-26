@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <SDL_timer.h>
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
@@ -37,10 +38,15 @@ private:
 	SDL_Color blue = { 0, 0, 255, 255 };
 	vector<Circle*> objs;
 	RectangleObj* m_ground;
+	RectangleObj* m_left;
+	RectangleObj* m_right;
 
 	bool m_exitGame = false;
 
 	float result = 0;
+
+	Uint32 old_time, current_time;
+	float ftime;
 };
 
 

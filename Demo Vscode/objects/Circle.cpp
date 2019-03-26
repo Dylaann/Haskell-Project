@@ -1,13 +1,14 @@
 #include "Circle.h"
 
 // Circle Constructor function implementation
-Circle::Circle(float x, float y, bool isStatic, int radius, SDL_Color col) {
+Circle::Circle(int id, float x, float y, bool isStatic, int radius, SDL_Color col) {
 	m_position.first = x;
 	m_position.second = y;
 	m_static = isStatic;
 	m_radius = radius;
 	m_color = col;
 	m_velocity = { 0.0f, 0.0f };
+	m_id = id;
 }
 
 // Deconstructor
@@ -53,20 +54,34 @@ void Circle::setPosY(float y){
 
 // Set X velocity
 void Circle::setVel(std::pair<float, float> vel){
-	if(vel.first < m_maxVel) {
+
+	if(vel.first < m_maxVel && vel.first > -m_maxVel) {
 		m_velocity.first = vel.first;
 	}
-	else {
-		m_velocity.first = m_maxVel;
+	else if (m_velocity.first < -m_maxVel) {
+			m_velocity.first = -m_maxVel;
+	}
+	else if (m_velocity.first > m_maxVel) {
+			m_velocity.first = m_maxVel;
 	}
 
-	if(vel.second < m_maxVel) {
-	m_velocity.second = vel.second;
+	if(vel.second < m_maxVel && vel.second > -m_maxVel) {
+		m_velocity.second = vel.second;
 	}
-	else {
+	else if (m_velocity.second < -m_maxVel) {
+			m_velocity.second = -m_maxVel;
+	}
+	else if (m_velocity.second > m_maxVel) {
 			m_velocity.second = m_maxVel;
 	}
 
+	if (m_velocity.first < 0.23 && m_velocity.first > -0.23) {
+		m_velocity.first = 0;
+	}
+
+	if (m_velocity.second < 0.23 && m_velocity.second > -0.23) {
+		m_velocity.second = 0;
+	}
 }
 
 // Set X position
