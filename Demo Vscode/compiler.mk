@@ -18,7 +18,7 @@ LIBRARY_PATHS = -L"C:\SDL2-2.0.3\x86_64-w64-mingw32\lib"\
 -L"C:\Program Files\Haskell Platform\8.4.3\lib\ghc-prim-0.5.2.0"\
 -L"C:\Program Files\Haskell Platform\8.4.3\lib\integer-gmp-1.0.2.0"\
 
-LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lstdc++ -optl-mwindows -optl-Wl,-allow-multiple-definition
+LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lstdc++ -optl-mwindows -optl-Wl,-allow-multiple-definition
 
 COMPILER_FLAGS = -w
 

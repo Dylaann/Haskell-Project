@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 #include <SDL_stdinc.h>
+#include <SDL_image.h>
 #include <stdlib.h>
 #include <iostream>
 
@@ -10,7 +11,7 @@
 class Circle {
 public:
     //Constructor / Destructor.
-	Circle(int id, float x, float y, bool isStatic, int radius, SDL_Color col);
+	Circle(int id, float x, float y, bool isStatic, int radius, SDL_Color col, SDL_Texture * texture);
 	~Circle();
 
     //Update & Render functions.
@@ -41,7 +42,9 @@ private:
     std::pair<float, float> m_velocity;
     int m_radius;
     bool m_static;
-    float m_maxVel = 20;
+    float m_maxVel = 4;
     float m_mass = 10;
+    SDL_Texture * m_texture;
+    SDL_Rect m_drawRect;
 };
 #endif // !Circle   

@@ -18,15 +18,13 @@ foreign export ccall topBoundRes :: Float -> Float
 foreign export ccall bottomBoundRes :: Float -> Float
 foreign export ccall circleCircleResX :: Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall circleCircleResY :: Float -> Float -> Float -> Float -> Float -> Float -> Float
-foreign export ccall newVelX1 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-foreign export ccall newVelY1 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-foreign export ccall newVelX2 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-foreign export ccall newVelY2 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall lastHopeX1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall lastHopeY1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall lastHopeX2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall lastHopeY2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall groundRestitution :: Float -> Float
+foreign export ccall circlePushBackX :: Float -> Float -> Float -> Float -> Float
+foreign export ccall circlePushBackY :: Float -> Float -> Float -> Float -> Float
 
 -- | act as gravity and move the y coordinate
 moveGravity :: Float -> Float
@@ -69,7 +67,7 @@ bottomBoundRes r1 = 0 - r1
 
 -- | detect if circles collide given position and radius
 circleCircleCollision :: Float -> Float -> Float -> Float -> Float -> Float -> Bool
-circleCircleCollision x1 y1 r1 x2 y2 r2 = (getDist x1 y1 x2 y2) < (r1 + r2)
+circleCircleCollision x1 y1 r1 x2 y2 r2 = (getDist x1 y1 x2 y2) <= (r1 + r2)
 
 -- | circle collision response
 circleCircleResX :: Float -> Float -> Float -> Float -> Float -> Float -> Float
@@ -114,25 +112,6 @@ mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = (dpNorm1  x1 y1 vx1 vy1 x2 y2 vx2 vy2)
 mass2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = (dpNorm2  x1 y1 vx1 vy1 x2 y2 vx2 vy2) * (m2 - m1) + 2.0 * m1 * (dpNorm1 x1 y1 vx1 vy1 x2 y2 vx2 vy2) / (m1 + m2)
 
-
-nxPoint :: Float -> Float -> Float -> Float
-nxPoint x1 x2 d = (x2 - x1) / d
-nyPoint :: Float -> Float -> Float -> Float
-nyPoint y1 y2 d = (y2 - y1) / d
-
-pValue :: Float -> Float -> Float -> Float -> Float -> Float -> Float
-pValue vx1 vy1 vx2 vy2 nx1 ny1 = 2 * (((vx1 * nx1) + (vy1 * ny1)) - ((vx2 * nx1) - (vy2 * ny1)))
-
-newVelX1 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-newVelX1 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vx1 - (pValue vx1 vy1 vx2 vy2 (nxPoint x1 x2 (getDist x1 y1 x2 y2)) (nyPoint y1 y2 (getDist x1 y1 x2 y2))) * (nxPoint x1 x2 (getDist x1 y1 x2 y2))
-newVelY1 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-newVelY1 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vy1 - (pValue vx1 vy1 vx2 vy2 (nxPoint x1 x2 (getDist x1 y1 x2 y2)) (nyPoint y1 y2 (getDist x1 y1 x2 y2))) * (nyPoint y1 y2 (getDist x1 y1 x2 y2))
-newVelX2 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-newVelX2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vx2 + (pValue vx1 vy1 vx2 vy2 (nxPoint x1 x2 (getDist x1 y1 x2 y2)) (nyPoint y1 y2 (getDist x1 y1 x2 y2))) * (nxPoint x1 x2 (getDist x1 y1 x2 y2))
-newVelY2 ::  Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-newVelY2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = vy2 + (pValue vx1 vy1 vx2 vy2 (nxPoint x1 x2 (getDist x1 y1 x2 y2)) (nyPoint y1 y2 (getDist x1 y1 x2 y2))) * (nyPoint y1 y2 (getDist x1 y1 x2 y2))
-
-
 -- | Get tangent vector
 tangentX :: Float -> Float -> Float
 tangentX y1 y2 = y2 - y1
@@ -164,7 +143,23 @@ circleRectResX x = (groundRestitution x) * (-1)
 
 -- | restitution
 groundRestitution :: Float -> Float
-groundRestitution y1 = y1 * 0.7
+groundRestitution y1 = y1 * 0.8
+
+-- | get the push back vector
+circlePushBackX :: Float -> Float -> Float -> Float -> Float
+circlePushBackX x1 r1 x2 r2 = (x1 - (collisonPointX x1 r1 x2 r2)) / 8
+-- | get the push back vector
+circlePushBackY :: Float -> Float -> Float -> Float -> Float
+circlePushBackY y1 r1 y2 r2 = (y1 - (collisonPointY y1 r1 y2 r2)) / 8
+
+
+-- | collision point between two circles X
+collisonPointX :: Float -> Float -> Float -> Float -> Float
+collisonPointX x1 r1 x2 r2 = (((x1 * r2) + (x2 * r1)) / (r1 + r2))
+
+-- | collision point between two circles Y
+collisonPointY :: Float -> Float -> Float -> Float -> Float
+collisonPointY y1 r1 y2 r2 = (((y1 * r2) + (y2 * r1)) / (r1 + r2)) 
 
 
 -- | get the push back vector

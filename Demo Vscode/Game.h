@@ -36,10 +36,12 @@ private:
 
 	SDL_Color red = { 255, 0, 0, 255 };
 	SDL_Color blue = { 0, 0, 255, 255 };
+	SDL_Color green = { 0, 255, 0, 255 };
 	vector<Circle*> objs;
 	RectangleObj* m_ground;
 	RectangleObj* m_left;
 	RectangleObj* m_right;
+	RectangleObj* m_spawn;
 
 	bool m_exitGame = false;
 
@@ -47,6 +49,8 @@ private:
 
 	Uint32 old_time, current_time;
 	float ftime;
+	SDL_Surface * m_image;
+	SDL_Texture * m_texture;
 };
 
 

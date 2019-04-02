@@ -1,7 +1,7 @@
 #include "Circle.h"
 
 // Circle Constructor function implementation
-Circle::Circle(int id, float x, float y, bool isStatic, int radius, SDL_Color col) {
+Circle::Circle(int id, float x, float y, bool isStatic, int radius, SDL_Color col, SDL_Texture * texture) {
 	m_position.first = x;
 	m_position.second = y;
 	m_static = isStatic;
@@ -9,6 +9,13 @@ Circle::Circle(int id, float x, float y, bool isStatic, int radius, SDL_Color co
 	m_color = col;
 	m_velocity = { 0.0f, 0.0f };
 	m_id = id;
+	m_texture = texture;
+
+	m_drawRect.x = x - radius;
+	m_drawRect.y = y - radius;
+	m_drawRect.w = radius * 2;
+	m_drawRect.h = radius * 2;
+
 }
 
 // Deconstructor
@@ -18,28 +25,14 @@ Circle::~Circle() {
 
 // Update Implementation
 void Circle::update() {
-
+		m_drawRect.x = m_position.first - m_radius;
+		m_drawRect.y = m_position.second - m_radius;
 }
 
 // Render a circle
 void Circle::render(SDL_Renderer* rend) {
-    
-    SDL_SetRenderDrawColor(rend, m_color.r, m_color.g, m_color.b, m_color.a);
 
-		int point_x = 0;
-		int point_y = 0;
-		int temp = m_radius;
-
-		while (temp > 0)
-		{
-			for (int t = 0; t < 360; t++)
-			{
-				point_x = m_position.first + (m_radius * SDL_cos(t));
-				point_y = 	m_position.second + (m_radius * SDL_sin(t));
-				SDL_RenderDrawPoint(rend, point_x, point_y);
-			}
-			temp--;
-		}
+		SDL_RenderCopy(rend, m_texture, NULL, &m_drawRect);
 }
 
 // Set X position

@@ -20,15 +20,13 @@ extern HsFloat topBoundRes(HsFloat a1);
 extern HsFloat bottomBoundRes(HsFloat a1);
 extern HsFloat circleCircleResX(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6);
 extern HsFloat circleCircleResY(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6);
-extern HsFloat newVelX1(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6, HsFloat a7, HsFloat a8);
-extern HsFloat newVelY1(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6, HsFloat a7, HsFloat a8);
-extern HsFloat newVelX2(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6, HsFloat a7, HsFloat a8);
-extern HsFloat newVelY2(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6, HsFloat a7, HsFloat a8);
 extern HsFloat lastHopeX1(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6, HsFloat a7, HsFloat a8, HsFloat a9, HsFloat a10);
 extern HsFloat lastHopeY1(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6, HsFloat a7, HsFloat a8, HsFloat a9, HsFloat a10);
 extern HsFloat lastHopeX2(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6, HsFloat a7, HsFloat a8, HsFloat a9, HsFloat a10);
 extern HsFloat lastHopeY2(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4, HsFloat a5, HsFloat a6, HsFloat a7, HsFloat a8, HsFloat a9, HsFloat a10);
 extern HsFloat groundRestitution(HsFloat a1);
+extern HsFloat circlePushBackX(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4);
+extern HsFloat circlePushBackY(HsFloat a1, HsFloat a2, HsFloat a3, HsFloat a4);
 #ifdef __cplusplus
 }
 #endif
