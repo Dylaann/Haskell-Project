@@ -10,7 +10,7 @@
 #include <vector>
 #include "objects/Circle.h"
 #include "objects/RectangleObj.h"
-#include "Haskell/Move_stub.h"
+#include "Haskell/Physics_stub.h"
 
 using namespace std;
 
@@ -41,6 +41,7 @@ private:
 	RectangleObj* m_ground;
 	RectangleObj* m_left;
 	RectangleObj* m_right;
+	RectangleObj* m_top;
 	RectangleObj* m_spawn;
 
 	bool m_exitGame = false;

@@ -1,5 +1,5 @@
 #include "Game.h"
-#include "Haskell/Move_stub.h"
+#include "Haskell/Physics_stub.h"
 #include <HsFFI.h>
 
 using namespace std;

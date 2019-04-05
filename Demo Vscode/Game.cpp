@@ -23,16 +23,17 @@ Game::Game() {
 
 	// Create Objects
 	for (int i = 0; i < 4; i++) {
-		Circle* temp = new Circle(i, (i + 1) * 200.0f, 100.0f, false, 30, red, m_texture);
+		Circle* temp = new Circle(i, (i + 1) * 200.0f, 100.0f, false, 20, red, m_texture);
 		int tempX = rand() % 7 - 3;
 		int tempY = rand() % 7 - 3;
 		temp->setVel(std::make_pair<float, float>(tempX, tempY));
 		objs.push_back(temp);
 	}
 
-	m_ground = new RectangleObj(-10000, 700, 2280, 1200, true, blue);
-	m_left = new RectangleObj(-14500, -100, 1500, 2000, true, blue);
-	m_right = new RectangleObj(12300, -100, 1500, 2000, true, blue);
+	m_ground = new RectangleObj(-1000, 670, 2280, 50, true, blue);
+	m_left = new RectangleObj(0, 0, 50, 720, true, blue);
+	m_right = new RectangleObj(1230, 0, 50, 720, true, blue);
+	m_top = new RectangleObj(0, 0, 1280, 50, true, blue);
 	m_spawn = new RectangleObj(70, 70, 60, 60, false, green);
 }
 
@@ -65,7 +66,7 @@ void Game::run() {
 
 		update();
 
-		std::cout << "Update Time: " << ftime << std::endl;
+		std::cout << (int)objs.size() << std::endl;
 		ftime = 0;
 
 		render();
@@ -92,17 +93,15 @@ void Game::processEvents() {
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				m_exitGame = true;
 			if (event.key.keysym.sym == SDLK_RIGHT) {
-				Circle* temp1 = new Circle(objs.size(), 100.0f, 100.0f, false, 30, red, m_texture);
+				Circle* temp1 = new Circle(objs.size(), 100.0f, 100.0f, false, 20, red, m_texture);
 				int tempX = rand() % 7 - 3;
 				int tempY = rand() % 7 - 3;
-				while ((tempX < 1 && tempX > -1) && (tempY < 1 && tempY > -1))
+				while ((tempX < 2 && tempX > -2) && (tempY < 2 && tempY > -2))
 				{
 					tempX = rand() % 7 - 3;
 					tempY = rand() % 7 - 3;
-					std::cout << "X: " << tempX << ", Y: " << tempY << std::endl;
 				}
 				temp1->setVel(std::make_pair<float, float>(tempX, tempY));
-				std::cout << "X: " << tempX << ", Y: " << tempY << std::endl;
 				objs.push_back(temp1);
 			}
 			break;
@@ -141,18 +140,18 @@ void Game::update()
 					
 
 					objs[i]->setPos(std::make_pair<float, float>(applyForce(x1, circlePushBackX(x1, r1, x2, r2)), applyForce(y1, circlePushBackY(y1, r1, y2, r2))));
-					//objs[j]->setPos(std::make_pair<float, float>(applyForce(x2, circlePushBackX(x2, r2, x1, r1)), applyForce(y2, circlePushBackX(y2, r2, y1, r1))));
+					objs[j]->setPos(std::make_pair<float, float>(applyForce(x2, circlePushBackX(x2, r2, x1, r1)), applyForce(y2, circlePushBackX(y2, r2, y1, r1))));
 
 					x1 = objs[i]->getPos().first;
 					y1 = objs[i]->getPos().second;
 					x2 = objs[j]->getPos().first;
 					y2 = objs[j]->getPos().second;
 
-					objs[i]->setVel(std::make_pair<float, float>(lastHopeX1(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2), 
-					lastHopeY1(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2)));
+					objs[i]->setVel(std::make_pair<float, float>(circleVelX1(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2), 
+					circleVelY1(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2)));
 
-					objs[j]->setVel(std::make_pair<float, float>(lastHopeX2(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2), 
-					lastHopeY2(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2)));
+					objs[j]->setVel(std::make_pair<float, float>(circleVelX2(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2), 
+					circleVelY2(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2)));
 
 					collided = true;
 					operations += 10;
@@ -161,9 +160,17 @@ void Game::update()
 			}
 		}
 
+		if(circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_top->getPos().first, m_top->getPos().second, m_top->getRect().first,  m_top->getRect().second)) {
+			objs[i]->setPosY(applyForce(objs[i]->getPosY(), topPushBackPosY(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_top->getPos().first, m_top->getPos().second, m_top->getRect().first,  m_top->getRect().second)));
+			objs[i]->setVel(std::make_pair<float, float>(objs[i]->getVel().first, circleRectResY(objs[i]->getVel().second)));
+			collided = true;
+			operations += 4;
+		}
+
+		operations++;
 		if(circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)) {
 			objs[i]->setPosY(applyForce(objs[i]->getPosY(), -pushBackPosY(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)));
-			objs[i]->setVel(std::make_pair<float, float>(groundRestitution(objs[i]->getVel().first), circleRectResY(objs[i]->getVel().second)));
+			objs[i]->setVel(std::make_pair<float, float>(objs[i]->getVel().first, circleRectResY(objs[i]->getVel().second)));
 			collided = true;
 
 			operations += 4;
@@ -225,6 +232,7 @@ void Game::render()
 	SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 	SDL_RenderClear(m_renderer);
 
+	m_top->render(m_renderer);
 	m_spawn->render(m_renderer);
 	m_ground->render(m_renderer);
 	m_left->render(m_renderer);

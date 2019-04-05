@@ -20,10 +20,10 @@ LIBRARY_PATHS = -L"C:\SDL2-2.0.3\x86_64-w64-mingw32\lib"\
 
 LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lstdc++ -optl-mwindows -optl-Wl,-allow-multiple-definition
 
-COMPILER_FLAGS = -w
+COMPILER_FLAGS = -w -Wuninitialized
 
-output: move.o rectangleObj.o circle.o game.o main.o
-	ghc -g -no-hs-main main.o game.o rectangleObj.o circle.o Haskell/move.o $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -o HaskellDemo
+output: physics.o rectangleObj.o circle.o nativePhysics.o game.o main.o
+	ghc -g -no-hs-main main.o game.o nativePhysics.o rectangleObj.o circle.o Haskell/physics.o $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -o HaskellDemo
 
 main.o: main.cpp 
 	g++ $(INCLUDE_PATHS) -c main.cpp
@@ -31,14 +31,17 @@ main.o: main.cpp
 game.o: Game.cpp Game.h
 	g++ $(INCLUDE_PATHS) -c game.cpp 
 
+nativePhysics.o: NativePhysics/NativePhysics.cpp NativePhysics/NativePhysics.h
+	g++ $(INCLUDE_PATHS) -c NativePhysics/NativePhysics.cpp
+
 circle.o: objects/Circle.cpp objects/Circle.h
 	g++ $(INCLUDE_PATHS) -c objects/Circle.cpp
 
 rectangleObj.o: objects/RectangleObj.cpp objects/RectangleObj.h
 	g++ $(INCLUDE_PATHS) -c objects/RectangleObj.cpp
 
-move.o: Haskell/Move.hs;
-	ghc $(INCLUDE_PATHS) -fforce-recomp Haskell/Move.hs -c
+physics.o: Haskell/Physics.hs;
+	ghc $(INCLUDE_PATHS) -fforce-recomp Haskell/Physics.hs -c
 
 .PHONY: clean
 clean: ; del *.o *.hi *_stub.h *.exe
