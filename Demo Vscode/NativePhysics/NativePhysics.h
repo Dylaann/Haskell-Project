@@ -8,68 +8,67 @@
 //Class Physics Class.
 class NativePhysics {
 public:
-    float applyForce(float x);
+    float applyForce(float x, float y);
 
-    bool CircleCircleCollision(float x1, float y1, float r1, float x2, float y2, float r2);
-    bool CircleRectCollision();
+    bool circleCircleCollision(float x1, float y1, float r1, float x2, float y2, float r2);
+    bool circleRectCollision(float x1, float y1, float r1, float x2, float y2, float w2, float h2);
 
-    float PushBackPosX();
-    float PushBackPosY();
+    float pushBackPosX(float x1, float y1, float r1, float x2, float y2, float w2, float h2);
+    float pushBackPosY(float x1, float y1, float r1, float x2, float y2, float w2, float h2);
+    float topPushBackPosY(float x1, float y1, float r1, float x2, float y2, float w2, float h2);
 
-    float CircleRectResX();
-    float CircleRectResY();
+    float circleRectResX(float x);
+    float circleRectResY(float y);
 
-    bool CheckLeftBounds(float x, float r);
-    bool CheckRightBounds(float x, float r);
-    bool CheckTopBounds(float y, float r);
-    bool CheckBottomBounds(float y, float r);
+    bool checkLeftBound(float x, float r);
+    bool checkRightBound(float x, float r);
+    bool checkTopBound(float y, float r);
+    bool checkBottomBound(float y, float r);
 
-    float LeftBoundRes(float r);
-    float RightBoundRes(float r);
-    float TopBoundRes(float r);
-    float BottomBoundRes(float r);
+    float leftBoundRes(float r);
+    float rightBoundRes(float r);
+    float topBoundRes(float r);
+    float bottomBoundRes(float r);
 
-    float CircleCircleResX();
-    float CircleCircleResY();
+    float circleVelX1(float x1, float y1, float vx1, float vy1, float m1, float x2, float y2, float vx2, float vy2, float m2);
+    float circleVelY1(float x1, float y1, float vx1, float vy1, float m1, float x2, float y2, float vx2, float vy2, float m2);
+    float circleVelX2(float x1, float y1, float vx1, float vy1, float m1, float x2, float y2, float vx2, float vy2, float m2);
+    float circleVelY2(float x1, float y1, float vx1, float vy1, float m1, float x2, float y2, float vx2, float vy2, float m2);
 
-    float CircleVelX1();
-    float CircleVelY1();
-    float CircleVelX2();
-    float CircleVelY2();
+    float restitution(float x);
 
-    float GroundRestitution();
-
-    float CirclePushBackX();
-    float CirclePushBackY();
+    float circlePushBackX(float x1, float r1, float x2, float r2);
+    float circlePushBackY(float y1, float r1, float y2, float r2);
 
 private:
     //Private Member Variables.
     float getDist(float x1, float y1, float x2, float y2);
-    float nx();
-    float ny();
-    float tx();
-    float ty();
-    float dpTan1();
-    float dpTan2();
-    float dpNorm1();
-    float dpNorm2();
-    float mass1();
-    float mass2();
-    float tangentX();
-    float tangentY();
-    float dotProd();
-    float normaliseVec();
-    float getMag();
-    float collisionPointX();
-    float collisionPointY();
-    float getEdgeX();
-    float getEdgeY();
-    float getPenVecX();
-    float getPenVecY();
-    float penAngle();
-    float penDist();
-    float circleRectCompX();
-    float circleRectCompY();
+    float nx(float x1, float y1, float x2, float y2);
+    float ny(float x1, float y1, float x2, float y2);
+    float tx(float ny1);
+    float ty(float nx1);
+    float dpTan1(float x1, float y1, float vx1, float vy1, float x2, float y2);
+    float dpTan2(float x1, float y1, float x2, float y2, float vx2, float vy2);
+    float dpNorm1(float x1, float y1, float vx1, float vy1, float x2, float y2);
+    float dpNorm2(float x1, float y1, float x2, float y2, float vx2, float vy2);
+    float mass1(float x1, float y1, float vx1, float vy1, float m1, float x2, float y2, float vx2, float vy2, float m2);
+    float mass2(float x1, float y1, float vx1, float vy1, float m1, float x2, float y2, float vx2, float vy2, float m2);
+    float tangentX(float y1, float y2);
+    float tangentY(float x1, float x2);
+    float dotProd(float x1, float y1, float x2, float y2);
+    float normaliseVec(float x, float mag);
+    float getMag(float x, float y);
+    float collisionPointX(float x1, float r1, float x2, float r2);
+    float collisionPointY(float y1, float r1, float y2, float r2);
+    float getEdgeX(float x1, float r1, float angle);
+    float getEdgeY(float y1, float r1, float angle);
+    float getPenVecX(float x1, float d1, float angle);
+    float getPenVecY(float y1, float d1, float angle);
+    float penAngle(float x1, float y1, float x2, float y2);
+    float topPenAngle(float x1, float y1, float x2, float y2);
+    float penDist(float r1, float d1);
+    float circleRectCompX(float x1, float x2, float w2);
+    float circleRectCompY(float y1, float y2, float h2);
 
     float m_windowWidth = 1280;
     float m_windowHeight = 720;

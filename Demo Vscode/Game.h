@@ -11,6 +11,7 @@
 #include "objects/Circle.h"
 #include "objects/RectangleObj.h"
 #include "Haskell/Physics_stub.h"
+#include "NativePhysics/NativePhysics.h"
 
 using namespace std;
 
@@ -25,7 +26,8 @@ public:
 private:
 
 	void processEvents();
-	void update();
+	void nativeUpdate();
+	void haskellUpdate();
 	void render();
 	
 	void setUpFont();
@@ -52,6 +54,9 @@ private:
 	float ftime;
 	SDL_Surface * m_image;
 	SDL_Texture * m_texture;
+
+	NativePhysics m_physics;
+	int operations = 0;
 };
 
 

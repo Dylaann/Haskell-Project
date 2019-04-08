@@ -64,9 +64,11 @@ void Game::run() {
 		current_time = SDL_GetTicks();
 		ftime += (current_time - old_time);
 
-		update();
+		//nativeUpdate();
+		//haskellUpdate();
 
-		std::cout << (int)objs.size() << std::endl;
+		std::cout << "Ticks - " << ftime << std::endl;
+		std::cout << "Function calls - " << operations << std::endl;
 		ftime = 0;
 
 		render();
@@ -111,15 +113,122 @@ void Game::processEvents() {
 	}
 }
 
-//Update Loop
-void Game::update()
+//Update for C++ physics
+void Game::nativeUpdate()
 {
-	int operations = 0;
+	operations = 0;
 
 	for(int i = 0; i < (int)objs.size(); i++) {
 		bool collided = false;
-		//objs[i]->setVel(std::make_pair<float, float>(objs[i]->getVel().first, moveGravity(objs[i]->getVel().second)));
+
+		for (int j = 0; j < (int)objs.size(); j++) {
+			if (j != i && j < i) {
+				if(m_physics.circleCircleCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), objs[j]->getPosX(), objs[j]->getPosY(), objs[j]->getRadius())) {
+
+					float x1 = objs[i]->getPos().first;
+					float y1 = objs[i]->getPos().second;
+					float vx1 = objs[i]->getVel().first;
+					float vy1 = objs[i]->getVel().second;
+					float m1 = objs[i]->getMass();
+					float r1 = objs[i]->getRadius();
+					float x2 = objs[j]->getPos().first;
+					float y2 = objs[j]->getPos().second;
+					float vx2 = objs[j]->getVel().first;
+					float vy2 = objs[j]->getVel().second;
+					float m2 = objs[j]->getMass();
+					float r2 = objs[j]->getRadius();
+					
+
+					objs[i]->setPos(std::make_pair<float, float>(m_physics.applyForce(x1, m_physics.circlePushBackX(x1, r1, x2, r2)), m_physics.applyForce(y1, m_physics.circlePushBackY(y1, r1, y2, r2))));
+					objs[j]->setPos(std::make_pair<float, float>(m_physics.applyForce(x2, m_physics.circlePushBackX(x2, r2, x1, r1)), m_physics.applyForce(y2, m_physics.circlePushBackX(y2, r2, y1, r1))));
+
+					x1 = objs[i]->getPos().first;
+					y1 = objs[i]->getPos().second;
+					x2 = objs[j]->getPos().first;
+					y2 = objs[j]->getPos().second;
+
+					objs[i]->setVel(std::make_pair<float, float>(m_physics.circleVelX1(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2), 
+					m_physics.circleVelY1(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2)));
+
+					objs[j]->setVel(std::make_pair<float, float>(m_physics.circleVelX2(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2), 
+					m_physics.circleVelY2(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2)));
+
+					collided = true;
+					operations += 12;
+				}
+				operations++;
+			}
+		}
+
+		if(m_physics.circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_top->getPos().first, m_top->getPos().second, m_top->getRect().first,  m_top->getRect().second)) {
+			objs[i]->setPosY(m_physics.applyForce(objs[i]->getPosY(), m_physics.topPushBackPosY(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_top->getPos().first, m_top->getPos().second, m_top->getRect().first,  m_top->getRect().second)));
+			objs[i]->setVel(std::make_pair<float, float>(objs[i]->getVel().first, m_physics.circleRectResY(objs[i]->getVel().second)));
+			collided = true;
+			operations += 3;
+		}
+
 		operations++;
+		if(m_physics.circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)) {
+			objs[i]->setPosY(m_physics.applyForce(objs[i]->getPosY(), -m_physics.pushBackPosY(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)));
+			objs[i]->setVel(std::make_pair<float, float>(objs[i]->getVel().first, m_physics.circleRectResY(objs[i]->getVel().second)));
+			collided = true;
+
+			operations += 3;
+		}
+		operations++;
+
+
+		if(m_physics.circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_left->getPos().first, m_left->getPos().second, m_left->getRect().first,  m_left->getRect().second)) {
+			objs[i]->setPosX(m_physics.applyForce(m_physics.pushBackPosX(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_left->getPos().first, m_left->getPos().second, m_left->getRect().first,  m_left->getRect().second), objs[i]->getPosX()));
+			objs[i]->setVel(std::make_pair<float, float>(m_physics.circleRectResX(objs[i]->getVel().first), objs[i]->getVel().second));
+			collided = true;
+			operations += 3;
+		}
+		operations++;
+
+		if(m_physics.circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_right->getPos().first, m_right->getPos().second, m_right->getRect().first,  m_right->getRect().second)) {
+			objs[i]->setPosX(m_physics.applyForce(objs[i]->getPosX(), m_physics.pushBackPosX(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_right->getPos().first, m_right->getPos().second, m_right->getRect().first,  m_right->getRect().second)));
+			objs[i]->setVel(std::make_pair<float, float>(m_physics.circleRectResX(objs[i]->getVel().first), objs[i]->getVel().second));
+			collided = true;
+			operations += 3;
+		}
+		operations++;
+
+		objs[i]->setPosX(m_physics.applyForce(objs[i]->getPosX(), objs[i]->getVel().first));
+		operations++;
+		objs[i]->setPosY(m_physics.applyForce(objs[i]->getPosY(), objs[i]->getVel().second));
+		operations++;
+
+		if (m_physics.checkLeftBound(objs[i]->getPosX(), objs[i]->getRadius())) {
+			objs[i]->setPosX(m_physics.leftBoundRes(objs[i]->getRadius()));
+			operations++;
+		}
+		if (m_physics.checkRightBound(objs[i]->getPosX(), objs[i]->getRadius())) {
+			objs[i]->setPosX(m_physics.rightBoundRes(objs[i]->getRadius()));
+			operations++;
+		}
+		if (m_physics.checkTopBound(objs[i]->getPosY(), objs[i]->getRadius())) {
+			objs[i]->setPosY(m_physics.topBoundRes(objs[i]->getRadius()));
+			operations++;
+		}
+		if (m_physics.checkBottomBound(objs[i]->getPosY(), objs[i]->getRadius())) {
+			objs[i]->setPosY(m_physics.bottomBoundRes(objs[i]->getRadius()));
+			operations++;
+		}
+		operations += 4;
+
+		objs[i]->update();
+	}
+}
+
+
+//Update for Haskell physics
+void Game::haskellUpdate()
+{
+	operations = 0;
+
+	for(int i = 0; i < (int)objs.size(); i++) {
+		bool collided = false;
 
 		for (int j = 0; j < (int)objs.size(); j++) {
 			if (j != i && j < i) {
@@ -154,7 +263,7 @@ void Game::update()
 					circleVelY2(x1, y1, vx1, vy1, m1, x2, y2, vx2, vy2, m2)));
 
 					collided = true;
-					operations += 10;
+					operations += 12;
 				}
 				operations++;
 			}
@@ -164,16 +273,16 @@ void Game::update()
 			objs[i]->setPosY(applyForce(objs[i]->getPosY(), topPushBackPosY(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_top->getPos().first, m_top->getPos().second, m_top->getRect().first,  m_top->getRect().second)));
 			objs[i]->setVel(std::make_pair<float, float>(objs[i]->getVel().first, circleRectResY(objs[i]->getVel().second)));
 			collided = true;
-			operations += 4;
+			operations += 3;
 		}
-
 		operations++;
+
 		if(circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)) {
 			objs[i]->setPosY(applyForce(objs[i]->getPosY(), -pushBackPosY(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_ground->getPos().first, m_ground->getPos().second, m_ground->getRect().first,  m_ground->getRect().second)));
 			objs[i]->setVel(std::make_pair<float, float>(objs[i]->getVel().first, circleRectResY(objs[i]->getVel().second)));
 			collided = true;
 
-			operations += 4;
+			operations += 3;
 		}
 		operations++;
 
@@ -183,7 +292,7 @@ void Game::update()
 			objs[i]->setVel(std::make_pair<float, float>(circleRectResX(objs[i]->getVel().first), objs[i]->getVel().second));
 			collided = true;
 			
-			operations += 4;
+			operations += 3;
 		}
 		operations++;
 
@@ -192,7 +301,7 @@ void Game::update()
 			objs[i]->setVel(std::make_pair<float, float>(circleRectResX(objs[i]->getVel().first), objs[i]->getVel().second));
 			collided = true;
 
-			operations += 4;
+			operations += 3;
 		}
 		operations++;
 
@@ -203,22 +312,24 @@ void Game::update()
 
 		if (checkLeftBound(objs[i]->getPosX(), objs[i]->getRadius())) {
 			objs[i]->setPosX(leftBoundRes(objs[i]->getRadius()));
+			operations++;
 		}
 		if (checkRightBound(objs[i]->getPosX(), objs[i]->getRadius())) {
 			objs[i]->setPosX(rightBoundRes(objs[i]->getRadius()));
+			operations++;
 		}
 		if (checkTopBound(objs[i]->getPosY(), objs[i]->getRadius())) {
 			objs[i]->setPosY(topBoundRes(objs[i]->getRadius()));
+			operations++;
 		}
 		if (checkBottomBound(objs[i]->getPosY(), objs[i]->getRadius())) {
 			objs[i]->setPosY(bottomBoundRes(objs[i]->getRadius()));
+			operations++;
 		}
 		operations += 4;
 
 		objs[i]->update();
 	}
-
-	//std::cout << "Operations: " << operations << std::endl;
 }
 
 // Render Loop

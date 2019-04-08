@@ -2,13 +2,15 @@ module Physics where
 
 foreign export ccall moveGravity :: Float -> Float
 foreign export ccall applyForce :: Float -> Float -> Float
-foreign export ccall circleCircleCollision :: Float -> Float -> Float -> Float -> Float -> Float -> Bool
+foreign export ccall groundRestitution :: Float -> Float
+
 foreign export ccall circleRectCollision :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Bool
+foreign export ccall circleRectResY :: Float -> Float
+foreign export ccall circleRectResX :: Float -> Float
 foreign export ccall pushBackPosX :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall pushBackPosY :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall topPushBackPosY :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-foreign export ccall circleRectResY :: Float -> Float
-foreign export ccall circleRectResX :: Float -> Float
+
 foreign export ccall checkLeftBound :: Float -> Float -> Bool
 foreign export ccall checkRightBound :: Float -> Float -> Bool
 foreign export ccall checkTopBound :: Float -> Float -> Bool
@@ -17,13 +19,12 @@ foreign export ccall leftBoundRes :: Float -> Float
 foreign export ccall rightBoundRes :: Float -> Float
 foreign export ccall topBoundRes :: Float -> Float
 foreign export ccall bottomBoundRes :: Float -> Float
-foreign export ccall circleCircleResX :: Float -> Float -> Float -> Float -> Float -> Float -> Float
-foreign export ccall circleCircleResY :: Float -> Float -> Float -> Float -> Float -> Float -> Float
+
+foreign export ccall circleCircleCollision :: Float -> Float -> Float -> Float -> Float -> Float -> Bool
 foreign export ccall circleVelX1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall circleVelY1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall circleVelX2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
 foreign export ccall circleVelY2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-foreign export ccall groundRestitution :: Float -> Float
 foreign export ccall circlePushBackX :: Float -> Float -> Float -> Float -> Float
 foreign export ccall circlePushBackY :: Float -> Float -> Float -> Float -> Float
 
@@ -70,23 +71,15 @@ bottomBoundRes r1 = 0 - r1
 circleCircleCollision :: Float -> Float -> Float -> Float -> Float -> Float -> Bool
 circleCircleCollision x1 y1 r1 x2 y2 r2 = (getDist x1 y1 x2 y2) <= (r1 + r2)
 
--- | circle collision response
-circleCircleResX :: Float -> Float -> Float -> Float -> Float -> Float -> Float
-circleCircleResX x1 y1 v1 x2 y2 v2 = (v1 - v2) - ((normaliseVec (tangentX y1 y2) (getMag x1 y1)) * (dotProd x1 y1 x2 y2))
-
--- | circle collision response
-circleCircleResY :: Float -> Float -> Float -> Float -> Float -> Float -> Float
-circleCircleResY x1 y1 v1 x2 y2 v2 = (v1 - v2) - ((normaliseVec (tangentY x1 x2) (getMag x1 y1)) * (dotProd x1 y1 x2 y2))
-
 circleVelX1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float-> Float -> Float
-circleVelX1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((tx (ny x1 y1 x2 y2)) * (dpTan1 x1 y1 vx1 vy1 x2 y2 vx2 vy2)) + ((nx x1 y1 x2 y2) * (mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
+circleVelX1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((tx (ny x1 y1 x2 y2)) * (dpTan1 x1 y1 vx1 vy1 x2 y2)) + ((nx x1 y1 x2 y2) * (mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
 circleVelY1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-circleVelY1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((ty (ny x1 y1 x2 y2)) * (dpTan1 x1 y1 vx1 vy1 x2 y2 vx2 vy2)) + ((ny x1 y1 x2 y2) * (mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
+circleVelY1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((ty (ny x1 y1 x2 y2)) * (dpTan1 x1 y1 vx1 vy1 x2 y2)) + ((ny x1 y1 x2 y2) * (mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
 
 circleVelX2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-circleVelX2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((tx (ny x1 y1 x2 y2)) * (dpTan2 x1 y1 vx1 vy1 x2 y2 vx2 vy2)) + ((nx x1 y1 x2 y2) * (mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
+circleVelX2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((tx (ny x1 y1 x2 y2)) * (dpTan2 x1 y1 x2 y2 vx2 vy2)) + ((nx x1 y1 x2 y2) * (mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
 circleVelY2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-circleVelY2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((ty (ny x1 y1 x2 y2)) * (dpTan2 x1 y1 vx1 vy1 x2 y2 vx2 vy2)) + ((ny x1 y1 x2 y2) * (mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
+circleVelY2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = ((ty (ny x1 y1 x2 y2)) * (dpTan2 x1 y1 x2 y2 vx2 vy2)) + ((ny x1 y1 x2 y2) * (mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2))
 
 nx :: Float -> Float -> Float -> Float -> Float
 nx x1 y1 x2 y2 = (x2 - x1) / (getDist x1 y1 x2 y2)
@@ -94,24 +87,24 @@ ny :: Float -> Float -> Float -> Float -> Float
 ny x1 y1 x2 y2 = (y2 - y1) / (getDist x1 y1 x2 y2)
 
 tx :: Float -> Float
-tx ny = -ny
+tx ny1 = ny1 * (-1)
 ty :: Float -> Float
-ty nx = nx
+ty nx1 = nx1
 
-dpTan1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-dpTan1 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = (vx1 * (tx (ny x1 y1 x2 y2))) + (vy1 *  (ty (nx x1 y1 x2 y2)))
-dpTan2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-dpTan2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = (vx2 * (tx (ny x1 y1 x2 y2))) + (vy2 *  (ty (nx x1 y1 x2 y2)))
+dpTan1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float
+dpTan1 x1 y1 vx1 vy1 x2 y2 = (vx1 * (tx (ny x1 y1 x2 y2))) + (vy1 *  (ty (nx x1 y1 x2 y2)))
+dpTan2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float
+dpTan2 x1 y1 x2 y2 vx2 vy2 = (vx2 * (tx (ny x1 y1 x2 y2))) + (vy2 *  (ty (nx x1 y1 x2 y2)))
 
-dpNorm1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-dpNorm1 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = (vx1 * (nx x1 y1 x2 y2)) + (vy1 * (ny x1 y1 x2 y2))
-dpNorm2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-dpNorm2 x1 y1 vx1 vy1 x2 y2 vx2 vy2 = (vx2 * (nx x1 y1 x2 y2)) + (vy2 * (ny x1 y1 x2 y2))
+dpNorm1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float
+dpNorm1 x1 y1 vx1 vy1 x2 y2 = (vx1 * (nx x1 y1 x2 y2)) + (vy1 * (ny x1 y1 x2 y2))
+dpNorm2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float
+dpNorm2 x1 y1 x2 y2 vx2 vy2 = (vx2 * (nx x1 y1 x2 y2)) + (vy2 * (ny x1 y1 x2 y2))
 
 mass1 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = (dpNorm1  x1 y1 vx1 vy1 x2 y2 vx2 vy2) * (m1 - m2) + 2.0 * m2 * (dpNorm2 x1 y1 vx1 vy1 x2 y2 vx2 vy2) / (m1 + m2)
+mass1 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = (dpNorm1  x1 y1 vx1 vy1 x2 y2) * (m1 - m2) + 2.0 * m2 * (dpNorm2 x1 y1 x2 y2 vx2 vy2) / (m1 + m2)
 mass2 :: Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float -> Float
-mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = (dpNorm2  x1 y1 vx1 vy1 x2 y2 vx2 vy2) * (m2 - m1) + 2.0 * m1 * (dpNorm1 x1 y1 vx1 vy1 x2 y2 vx2 vy2) / (m1 + m2)
+mass2 x1 y1 vx1 vy1 m1 x2 y2 vx2 vy2 m2 = (dpNorm2  x1 y1 x2 y2 vx2 vy2) * (m2 - m1) + 2.0 * m1 * (dpNorm1 x1 y1 vx1 vy1 x2 y2) / (m1 + m2)
 
 -- | Get tangent vector
 tangentX :: Float -> Float -> Float
