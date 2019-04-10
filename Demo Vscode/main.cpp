@@ -1,3 +1,9 @@
+/*
+* @author Dylan Murphy
+* @version 1.0
+* @date 12/04/2019
+*/
+
 #include "Game.h"
 #include "Haskell/Physics_stub.h"
 #include <HsFFI.h>

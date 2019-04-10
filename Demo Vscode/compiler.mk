@@ -3,6 +3,7 @@
 #INCLUDE_PATHS specifies the additional include paths we'll need
 INCLUDE_PATHS = -I"C:\SDL2-2.0.3\x86_64-w64-mingw32\include\SDL2"\
 -I"C:\Program Files\Haskell Platform\8.4.3\lib\include"\
+-I"C:\Users\dylmr\Documents\Haskell-Project\Demo Vscode\imgui"\
 -I/iconv\
 -I/HSrts\
 -I/HSbase-4.11.1.0.o\
@@ -18,10 +19,13 @@ LIBRARY_PATHS = -L"C:\SDL2-2.0.3\x86_64-w64-mingw32\lib"\
 -L"C:\Program Files\Haskell Platform\8.4.3\lib\ghc-prim-0.5.2.0"\
 -L"C:\Program Files\Haskell Platform\8.4.3\lib\integer-gmp-1.0.2.0"\
 
+#Linker Flags for SDL2
 LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lstdc++ -optl-mwindows -optl-Wl,-allow-multiple-definition
 
-COMPILER_FLAGS = -w -Wuninitialized
+#Compiler flags ignore warnings
+COMPILER_FLAGS = -w -Wunused-variable -Wuninitialized
 
+#Create executable with object files
 output: physics.o rectangleObj.o circle.o nativePhysics.o game.o main.o
 	ghc -g -no-hs-main main.o game.o nativePhysics.o rectangleObj.o circle.o Haskell/physics.o $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) -o HaskellDemo
 
@@ -43,5 +47,6 @@ rectangleObj.o: objects/RectangleObj.cpp objects/RectangleObj.h
 physics.o: Haskell/Physics.hs;
 	ghc $(INCLUDE_PATHS) -fforce-recomp Haskell/Physics.hs -c
 
+#Clean project dir
 .PHONY: clean
 clean: ; del *.o *.hi *_stub.h *.exe

@@ -2,7 +2,6 @@
 
 // Game constrcutor
 Game::Game() {
-	srand(NULL);
 	//Init SDL
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
@@ -14,31 +13,30 @@ Game::Game() {
 	AttachConsole( GetCurrentProcessId() ) ;
 	freopen( "CON", "w", stdout ) ;
 
-	m_window = SDL_CreateWindow("Haskell, C++ Inter-Op", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_OPENGL);
+	m_window = SDL_CreateWindow("Haskell, C++ Inter-Op", 0, 0, 1280, 720, SDL_WINDOW_OPENGL);
 	m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 
+	if(profiling) {
+		initChecks();
+	}
+
+	// Load image for renderering & Create objects
 	m_image = IMG_Load("ASSETS//IMAGES//Circle.png");
 	m_texture = SDL_CreateTextureFromSurface(m_renderer, m_image);
 	SDL_FreeSurface(m_image);
+	createObjs();
 
-	// Create Objects
-	for (int i = 0; i < 4; i++) {
-		Circle* temp = new Circle(i, (i + 1) * 200.0f, 100.0f, false, 20, red, m_texture);
-		int tempX = rand() % 7 - 3;
-		int tempY = rand() % 7 - 3;
-		temp->setVel(std::make_pair<float, float>(tempX, tempY));
-		objs.push_back(temp);
+	// Open text file for writing
+	if(profiling) {
+		myfile.open("TextFiles/profiling2.txt");
 	}
-
-	m_ground = new RectangleObj(-1000, 670, 2280, 50, true, blue);
-	m_left = new RectangleObj(0, 0, 50, 720, true, blue);
-	m_right = new RectangleObj(1230, 0, 50, 720, true, blue);
-	m_top = new RectangleObj(0, 0, 1280, 50, true, blue);
-	m_spawn = new RectangleObj(70, 70, 60, 60, false, green);
 }
 
 // Game deconstructor
 Game::~Game(){
+	if(myfile.is_open()) {
+		myfile.close();
+	}
 }
 
 // Game Loop
@@ -64,22 +62,26 @@ void Game::run() {
 		current_time = SDL_GetTicks();
 		ftime += (current_time - old_time);
 
-		//nativeUpdate();
-		//haskellUpdate();
-
-		std::cout << "Ticks - " << ftime << std::endl;
-		std::cout << "Function calls - " << operations << std::endl;
+		if(m_haskell) { 
+			haskellUpdate();
+		}
+		else {
+			nativeUpdate();
+		}
+		printData();
 		ftime = 0;
 
 		render();
 
 		if ((SDL_GetTicks() - frameTime) < minimumFrameTime)
 			SDL_Delay(minimumFrameTime - (SDL_GetTicks() - frameTime));
-	}
 
+	}
+	
 	SDL_DestroyRenderer(m_renderer);
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
+	exit( GetCurrentProcessId() );
 }
 
 // Event Handling
@@ -94,7 +96,8 @@ void Game::processEvents() {
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				m_exitGame = true;
-			if (event.key.keysym.sym == SDLK_RIGHT) {
+			if (event.key.keysym.sym == SDLK_SPACE) {
+				// Add new circle
 				Circle* temp1 = new Circle(objs.size(), 100.0f, 100.0f, false, 20, red, m_texture);
 				int tempX = rand() % 7 - 3;
 				int tempY = rand() % 7 - 3;
@@ -119,7 +122,7 @@ void Game::nativeUpdate()
 	operations = 0;
 
 	for(int i = 0; i < (int)objs.size(); i++) {
-		bool collided = false;
+		collided = false;
 
 		for (int j = 0; j < (int)objs.size(); j++) {
 			if (j != i && j < i) {
@@ -228,7 +231,7 @@ void Game::haskellUpdate()
 	operations = 0;
 
 	for(int i = 0; i < (int)objs.size(); i++) {
-		bool collided = false;
+		collided = false;
 
 		for (int j = 0; j < (int)objs.size(); j++) {
 			if (j != i && j < i) {
@@ -343,14 +346,14 @@ void Game::render()
 	SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 	SDL_RenderClear(m_renderer);
 
-	m_top->render(m_renderer);
 	m_spawn->render(m_renderer);
-	m_ground->render(m_renderer);
-	m_left->render(m_renderer);
-	m_right->render(m_renderer);
 	for (int i = 0; i < static_cast<int>(objs.size()); i++) {
 		objs[i]->render(m_renderer);
 	}
+	m_top->render(m_renderer);
+	m_ground->render(m_renderer);
+	m_left->render(m_renderer);
+	m_right->render(m_renderer);
 
 	SDL_RenderPresent(m_renderer);
 }
@@ -364,4 +367,118 @@ void Game::setUpFont() {
 	}
 	const char *path = "ASSETS\\FONTS\\arial.ttf";
 	Arial = TTF_OpenFont(path, 500);
+}
+
+// Get System data for profiling
+void Game::initChecks() {
+	SYSTEM_INFO sysInfo;
+    FILETIME ftime, fsys, fuser;
+
+    GetSystemInfo(&sysInfo);
+    numProcessors = sysInfo.dwNumberOfProcessors;
+
+    GetSystemTimeAsFileTime(&ftime);
+    memcpy(&lastCPU, &ftime, sizeof(FILETIME));
+
+    self = GetCurrentProcess();
+    GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+    memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
+    memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
+}
+
+// Get current Cpu usage as percent
+double Game::getCurrentVal() {
+	FILETIME ftime, fsys, fuser;
+    ULARGE_INTEGER now, sys, user;
+    double percent;
+
+    GetSystemTimeAsFileTime(&ftime);
+    memcpy(&now, &ftime, sizeof(FILETIME));
+
+    GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+    memcpy(&sys, &fsys, sizeof(FILETIME));
+    memcpy(&user, &fuser, sizeof(FILETIME));
+    percent = (sys.QuadPart - lastSysCPU.QuadPart) +
+        (user.QuadPart - lastUserCPU.QuadPart);
+    percent /= (now.QuadPart - lastCPU.QuadPart);
+    percent /= numProcessors;
+    lastCPU = now;
+    lastUserCPU = user;
+    lastSysCPU = sys;
+
+    return percent * 100;
+}
+
+// Get amount of RAM used by current proccess
+double Game::getRam() {
+	PROCESS_MEMORY_COUNTERS_EX pmc;
+	GetProcessMemoryInfo(GetCurrentProcess(), reinterpret_cast<PPROCESS_MEMORY_COUNTERS>(&pmc), sizeof(pmc));
+	SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
+	SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
+
+	return physMemUsedByMe;
+}
+
+void Game::printData() {
+	if(profiling) {
+		for(int i = 0; i < 1000000; i += 10000) {
+			if(operations > i && operations < i + 10000 && !operChecks[i / 10000]) {
+
+				//Print Data to console
+				std::cout << "**************" << std::endl;
+				double ram = ((getRam() / 1024) /1024);
+				double cpu = getCurrentVal();
+
+				std::cout << "Mem in MB: " << ram << std::endl;
+				std::cout << "CPU USED: " << cpu << std::endl;
+				std::cout << "Amount of Objs: " << objs.size() << std::endl;
+				std::cout << "Ticks - " << ftime << std::endl;
+				std::cout << "Function calls - " << operations << std::endl;
+
+				// Write Data to a file
+				if(myfile.is_open()) {
+					myfile  << row << "," 
+					<< ram << ","
+					<< cpu << ","
+					<< objs.size() << ","
+					<< ftime << ","
+					<< operations << "\n";
+				}
+				row++;
+				std::cout << "**************" << std::endl << std::endl << std::endl;
+				operChecks[i / 10000] = true;
+			}
+			else if (operations > i && operations < i + 10000 && operChecks[i / 10000] == true) {
+				// Make new Circle for profiling
+				Circle* temp1 = new Circle(objs.size(), 100.0f, 100.0f, false, 20, red, m_texture);
+				int tempX = rand() % 7 - 3;
+				int tempY = rand() % 7 - 3;
+				while ((tempX < 2 && tempX > -2) && (tempY < 2 && tempY > -2))
+				{
+					tempX = rand() % 7 - 3;
+					tempY = rand() % 7 - 3;
+				}
+				temp1->setVel(std::make_pair<float, float>(tempX, tempY));
+				objs.push_back(temp1);
+			}
+		}
+	}
+}
+
+void Game::createObjs() {
+	// Create Objects
+	for (int i = 0; i < 4; i++) {
+		Circle* temp = new Circle(i, (i + 1) * 200.0f, 100.0f, false, 20, red, m_texture);
+		int tempX = rand() % 7 - 3;
+		int tempY = rand() % 7 - 3;
+		temp->setVel(std::make_pair<float, float>(tempX, tempY));
+		objs.push_back(temp);
+	}
+
+	// Create boundaries and spawn position
+	m_ground = new RectangleObj(-1000, 670, 2280, 1550, true, blue);
+	m_left = new RectangleObj(-1500, 0, 1550, 720, true, blue);
+	m_right = new RectangleObj(1230, 0, 1550, 720, true, blue);
+	m_top = new RectangleObj(0, -1500, 1280, 1550, true, blue);
+	m_spawn = new RectangleObj(70, 70, 60, 60, false, green);
 }
