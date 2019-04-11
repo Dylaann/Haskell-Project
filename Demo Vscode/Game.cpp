@@ -97,17 +97,26 @@ void Game::processEvents() {
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				m_exitGame = true;
 			if (event.key.keysym.sym == SDLK_SPACE) {
-				// Add new circle
-				Circle* temp1 = new Circle(objs.size(), 100.0f, 100.0f, false, 20, red, m_texture);
-				int tempX = rand() % 7 - 3;
-				int tempY = rand() % 7 - 3;
-				while ((tempX < 2 && tempX > -2) && (tempY < 2 && tempY > -2))
-				{
-					tempX = rand() % 7 - 3;
-					tempY = rand() % 7 - 3;
+				bool canSpawn = true;
+				for(int i = 0; i < (int)objs.size(); i++) {
+					if (m_physics.circleRectCollision(objs[i]->getPosX(), objs[i]->getPosY(), objs[i]->getRadius(), m_spawn->getPos().first, m_spawn->getPos().second, m_spawn->getRect().first,  m_spawn->getRect().second)) {
+						canSpawn = false;
+					}
 				}
-				temp1->setVel(std::make_pair<float, float>(tempX, tempY));
-				objs.push_back(temp1);
+
+				if(canSpawn){
+					// Add new circle
+					Circle* temp1 = new Circle(objs.size(), 100.0f, 100.0f, false, 20, red, m_texture);
+					int tempX = rand() % 7 - 3;
+					int tempY = rand() % 7 - 3;
+					while ((tempX < 2 && tempX > -2) && (tempY < 2 && tempY > -2))
+					{
+						tempX = rand() % 7 - 3;
+						tempY = rand() % 7 - 3;
+					}
+					temp1->setVel(std::make_pair<float, float>(tempX, tempY));
+					objs.push_back(temp1);
+				}
 			}
 			break;
 		default:

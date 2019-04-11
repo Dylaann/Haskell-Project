@@ -77,7 +77,7 @@ private:
 	SDL_Texture * m_texture;
 
 	// Physics
-	bool m_haskell = false;
+	bool m_haskell = true;
 	NativePhysics m_physics;
 	int operations = 0;
 	bool collided = false;
